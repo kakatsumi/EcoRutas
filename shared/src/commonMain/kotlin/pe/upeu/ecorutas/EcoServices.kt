@@ -44,9 +44,9 @@ class EcoServices(
     }
 
     suspend fun registrarLocal(rutaId: Long, puntoId: Long, material: String, bruto: Double, tara: Double, observaciones: String?) : Long {
-        require(material.isNotBlank() && bruto > tara && tara >= 0) { "El material y los pesos deben ser válidos" }
+        validarPesajeLocal(material, bruto, tara)
         val actual = db.ecoQueries.listarPesajes().executeAsList().filter { it.id < 0 }.minOfOrNull { it.id } ?: 0L
-        val id = minOf(-1L, actual - 1)
+        val id = siguienteIdLocal(listOf(actual))
         db.ecoQueries.insertarPesaje(id, rutaId, puntoId, material.trim(), bruto.toString(), tara.toString(), null, observaciones, null, "PENDIENTE", 1L)
         return id
     }
@@ -55,6 +55,7 @@ class EcoServices(
         val token = tokens.token() ?: throw ApiError(401, "Inicia sesión")
         var enviados = 0
         // Primero se publican los registros locales. Si falla uno, no se descarga ni se pierde ese registro.
+        return sincronizarEnOrden(subir = {
         for (pendiente in db.ecoQueries.pendientes().executeAsList()) {
             val response = client.post(url("/api/v1/pesajes")) {
                 header(HttpHeaders.Authorization, "Bearer $token")
@@ -73,6 +74,8 @@ class EcoServices(
             }
             enviados++
         }
+        enviados
+        }, descargar = { subidos ->
         val paginaResponse = client.get(url("/api/v1/puntos?pagina=0&tamano=100")) {
             header(HttpHeaders.Authorization, "Bearer $token")
         }
@@ -98,11 +101,12 @@ class EcoServices(
             ruta.puntos.forEach { db.ecoQueries.insertarPunto(it.puntoId, it.nombre, it.direccion, it.zona, it.ordenVisita.toLong(), it.motivoOmision) }
             db.ecoQueries.insertarRuta(ruta.id, ruta.fecha, ruta.estado, ruta.operario)
         }
-        return "Sincronizado: $enviados pesajes subidos; ruta y puntos descargados"
+        "Sincronizado: $subidos pesajes subidos; ruta y puntos descargados"
+        })
     }
 
     private fun url(path: String): String = baseUrl().trimEnd('/') + path
     private fun verificar(codigo: Int, texto: String) {
-        if (codigo !in 200..299) throw ApiError(codigo, texto.take(300))
+        verificarHttp(codigo, texto)
     }
 }

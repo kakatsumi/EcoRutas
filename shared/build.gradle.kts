@@ -33,6 +33,7 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
             implementation(libs.sqldelight.android)
         }
+        getByName("androidHostTest").dependencies { implementation(libs.sqldelight.jvm) }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.ktor.client.mock)

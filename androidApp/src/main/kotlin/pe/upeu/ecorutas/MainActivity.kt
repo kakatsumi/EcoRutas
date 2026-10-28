@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.koin.core.context.startKoin
+import org.koin.core.context.GlobalContext
 import org.koin.dsl.module
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -27,7 +28,7 @@ class MainActivity : ComponentActivity(), KoinComponent {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val prefs = getSharedPreferences("backend", MODE_PRIVATE)
-        startKoin {
+        if (GlobalContext.getOrNull() == null) startKoin {
             modules(module {
                 single { crearCliente() } // Único HttpClient compartido
                 single { crearServicios(applicationContext, get(), { prefs.getString("url", "http://10.0.2.2:8080")!! }) }
