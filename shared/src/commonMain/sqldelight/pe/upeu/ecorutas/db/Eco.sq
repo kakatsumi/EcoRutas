@@ -1,0 +1,47 @@
+CREATE TABLE punto_local (
+ id INTEGER NOT NULL PRIMARY KEY,
+ nombre TEXT NOT NULL,
+ direccion TEXT NOT NULL,
+ zona TEXT NOT NULL,
+ orden_visita INTEGER NOT NULL,
+ motivo_omision TEXT
+);
+CREATE TABLE ruta_local (
+ id INTEGER NOT NULL PRIMARY KEY,
+ fecha TEXT NOT NULL,
+ estado TEXT NOT NULL,
+ operario TEXT NOT NULL
+);
+CREATE TABLE pesaje_local (
+ id INTEGER NOT NULL PRIMARY KEY,
+ ruta_id INTEGER NOT NULL,
+ punto_id INTEGER NOT NULL,
+ material TEXT NOT NULL,
+ peso_bruto TEXT NOT NULL,
+ tara TEXT NOT NULL,
+ peso_neto TEXT,
+ observaciones TEXT,
+ fecha_hora TEXT,
+ estado TEXT NOT NULL,
+ pendiente INTEGER NOT NULL
+);
+listarPuntos:
+SELECT * FROM punto_local ORDER BY orden_visita ASC;
+listarRutas:
+SELECT * FROM ruta_local LIMIT 1;
+listarPesajes:
+SELECT * FROM pesaje_local ORDER BY id DESC;
+pendientes:
+SELECT * FROM pesaje_local WHERE pendiente = 1 ORDER BY id DESC;
+insertarPunto:
+INSERT OR REPLACE INTO punto_local(id,nombre,direccion,zona,orden_visita,motivo_omision) VALUES (?,?,?,?,?,?);
+insertarRuta:
+INSERT OR REPLACE INTO ruta_local(id,fecha,estado,operario) VALUES (?,?,?,?);
+insertarPesaje:
+INSERT OR REPLACE INTO pesaje_local(id,ruta_id,punto_id,material,peso_bruto,tara,peso_neto,observaciones,fecha_hora,estado,pendiente) VALUES (?,?,?,?,?,?,?,?,?,?,?);
+borrarPesaje:
+DELETE FROM pesaje_local WHERE id = ?;
+limpiarPuntos:
+DELETE FROM punto_local;
+limpiarRutas:
+DELETE FROM ruta_local;
